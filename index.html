@@ -6,7 +6,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Tài Xế Kỳ Tài – Pack Master</title>
+<title>Tài Xế Kỳ Tài</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   html, body {
@@ -508,6 +508,243 @@
   }
   .rotate-title { font-size: 22px; font-weight: 900; margin-bottom: 8px; }
   .rotate-sub   { font-size: 14px; opacity: 0.7; max-width: 280px; }
+
+  /* ========== PHASE 2 (Bản Đồ Giao Hàng) ========== */
+  #bd-root {
+    position: fixed; inset: 0;
+    background: #0f1117; color: #fff;
+    z-index: 500;
+    display: none; flex-direction: column;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    touch-action: none; user-select: none; -webkit-user-select: none;
+  }
+  #bd-root.show { display: flex; }
+  #bd-root * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  #bd-root #bd-hud {
+    flex: 0 0 auto;
+    padding: 8px max(14px, env(safe-area-inset-right)) 8px max(14px, env(safe-area-inset-left));
+    display: flex; justify-content: space-between; align-items: center;
+    z-index: 10; gap: 10px;
+  }
+  #bd-root .hud-section { display: flex; align-items: center; gap: 8px; }
+  #bd-root .level-tag {
+    background: rgba(255,255,255,0.08);
+    border: 1.5px solid rgba(255,255,255,0.22);
+    padding: 8px 14px;
+    border-radius: 16px;
+    font-weight: 800;
+    color: #fff;
+    display: flex; align-items: baseline; gap: 5px;
+    line-height: 1;
+  }
+  #bd-root .level-tag .lv-prefix {
+    opacity: 0.5; font-size: 11px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  #bd-root .level-tag .lv-num { font-size: 18px; }
+  #bd-root .turns-badge {
+    background: linear-gradient(135deg, #fde047 0%, #eab308 100%);
+    color: #1a1d26;
+    border-radius: 22px;
+    font-weight: 900;
+    display: flex;
+    align-items: stretch;
+    box-shadow:
+      0 6px 18px rgba(234, 179, 8, 0.45),
+      inset 0 1px 0 rgba(255,255,255,0.5),
+      inset 0 -2px 4px rgba(0,0,0,0.08);
+    border: 2px solid rgba(255,255,255,0.45);
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  #bd-root .turns-badge.flash { animation: fuelFlash 0.5s; }
+@keyframes fuelFlash {
+    0%, 100% { transform: scale(1); }
+    40% { transform: scale(1.12); box-shadow: 0 8px 24px rgba(34,197,94,0.6), inset 0 1px 0 rgba(255,255,255,0.5); }
+  }  #bd-root .turns-badge.low { animation: lowFuel 1.2s ease-in-out infinite; }
+@keyframes lowFuel {
+    0%, 100% { box-shadow: 0 6px 18px rgba(234, 179, 8, 0.45), inset 0 1px 0 rgba(255,255,255,0.5); }
+    50% { box-shadow: 0 6px 22px rgba(239, 68, 68, 0.7), inset 0 1px 0 rgba(255,255,255,0.5); }
+  }  #bd-root .fuel-icon-wrap {
+    background: rgba(0,0,0,0.13);
+    padding: 8px 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    border-right: 1px solid rgba(0,0,0,0.1);
+  }
+  #bd-root .fuel-info {
+    padding: 6px 16px 6px 14px;
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  #bd-root .fuel-num {
+    font-size: 28px; line-height: 1;
+    font-variant-numeric: tabular-nums;
+    min-width: 24px; text-align: center;
+  }
+  #bd-root .fuel-label {
+    font-size: 11px; font-weight: 800;
+    opacity: 0.55;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  #bd-root .goal-pill {
+    background: rgba(255,255,255,0.08);
+    padding: 8px 14px; border-radius: 16px;
+    border: 2px solid rgba(255,255,255,0.18);
+    font-weight: 800; font-size: 14px;
+    transition: all 0.3s;
+    min-width: 36px; text-align: center;
+  }
+  #bd-root .goal-pill.done {
+    background: #22c55e; color: #fff;
+    border-color: #4ade80;
+    box-shadow: 0 2px 10px rgba(34,197,94,0.45);
+  }
+  #bd-root #bd-reset-btn {
+    background: rgba(255,255,255,0.1); color: #fff;
+    border: 1.5px solid rgba(255,255,255,0.25);
+    width: 40px; height: 40px; border-radius: 50%;
+    font-size: 18px; cursor: pointer;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center;
+  }
+  #bd-root #bd-board {
+    flex: 1; position: relative;
+    background: radial-gradient(ellipse 80% 60% at 50% 50%, #1f2330 0%, #0f1117 100%);
+    overflow: hidden;
+  }
+  #bd-root #bd-board-svg {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+  }
+  #bd-root .dot {
+    position: absolute;
+    width: 20px; height: 20px;
+    background: rgba(255,255,255,0.18);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+    pointer-events: none;
+  }
+  #bd-root .dot.special {
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 19px;
+    border: 2.5px solid rgba(255,255,255,0.45);
+    box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+  }
+  #bd-root .dot.kho {
+    background: linear-gradient(135deg, #6366f1, #4338ca);
+    font-size: 14px; color: #fff;
+    border-color: #a5b4fc;
+  }
+  #bd-root .dot.goal {
+    background: linear-gradient(135deg, #ef4444, #b91c1c);
+    color: #fff; border-color: #fca5a5;
+  }
+  #bd-root .dot.goal.visited-goal {
+    background: linear-gradient(135deg, #22c55e, #15803d);
+    border-color: #86efac;
+  }
+  #bd-root .dot.bonus {
+    background: linear-gradient(135deg, #facc15, #ca8a04);
+    color: #1a1d26; border-color: #fde68a;
+    box-shadow: 0 0 28px rgba(250, 204, 21, 0.6), 0 4px 12px rgba(0,0,0,0.3);
+    animation: bonusPulse 1.8s ease-in-out infinite;
+  }
+  #bd-root .dot.bonus.used-bonus {
+    background: linear-gradient(135deg, #9ca3af, #6b7280);
+    border-color: rgba(255,255,255,0.3);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    animation: none;
+    opacity: 0.7;
+  }
+@keyframes bonusPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.1); }
+  }  #bd-root .dot.bonus::after {
+    content: '+' attr(data-bonus) ' lượt';
+    position: absolute;
+    bottom: -22px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px; font-weight: 700;
+    color: #facc15;
+    background: rgba(0,0,0,0.7);
+    padding: 2px 8px; border-radius: 8px;
+    white-space: nowrap;
+  }
+  #bd-root .dot.bonus.used-bonus::after { display: none; }
+  #bd-root .dot.current {
+    box-shadow: 0 0 0 14px rgba(99, 102, 241, 0.22), 0 0 32px rgba(99,102,241,0.5);
+  }
+  #bd-root .dot.snap-target:not(.current) {
+    box-shadow: 0 0 0 10px rgba(255, 255, 255, 0.22);
+  }
+  #bd-root #bd-message-overlay {
+    position: absolute; inset: 0;
+    display: none; align-items: center; justify-content: center;
+    background: rgba(0,0,0,0.75); z-index: 30;
+    backdrop-filter: blur(6px);
+    padding: 16px;
+  }
+  #bd-root #bd-message-overlay.show { display: flex; }
+  #bd-root .message-card {
+    background: #1a1d26;
+    padding: 22px 28px;
+    border-radius: 20px;
+    text-align: center;
+    border: 2px solid rgba(255,255,255,0.08);
+    max-width: 360px;
+  }
+  #bd-root .message-card h2 { margin-bottom: 6px; font-size: 20px; }
+  #bd-root .message-card p {
+    font-size: 13px;
+    color: rgba(255,255,255,0.7);
+    margin-bottom: 14px;
+    line-height: 1.5;
+  }
+  #bd-root .message-card.win h2 { color: #22c55e; }
+  #bd-root .message-card.lose h2 { color: #ef4444; }
+  #bd-root .message-card button {
+    padding: 10px 26px;
+    background: linear-gradient(135deg, #6366f1, #4338ca);
+    color: #fff; border: none;
+    border-radius: 12px;
+    font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: inherit;
+    box-shadow: 0 4px 14px rgba(99,102,241,0.4);
+  }
+  #bd-root .bonus-popup {
+    position: absolute;
+    color: #facc15;
+    font-weight: 800; font-size: 22px;
+    pointer-events: none;
+    animation: floatUp 1.4s forwards;
+    text-shadow: 0 2px 12px rgba(0,0,0,0.8), 0 0 20px rgba(250,204,21,0.6);
+    z-index: 15;
+  }
+@keyframes floatUp {
+    0% { transform: translate(-50%, -50%); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translate(-50%, -130px); opacity: 0; }
+  }  #bd-root #bd-hint {
+    position: absolute;
+    bottom: 10px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 11px; color: rgba(255,255,255,0.45);
+    text-align: center;
+    pointer-events: none;
+    transition: opacity 0.5s;
+    white-space: nowrap;
+    padding: 0 14px;
+    max-width: 90vw;
+  }
+  #bd-root #bd-hint.hidden { opacity: 0; }
+
+
 </style>
 </head>
 <body>
@@ -577,12 +814,48 @@
     </div>
   </div>
 
-  <div class="rotate-hint" id="rotateHint">
-    <div class="rotate-icon">📱</div>
-    <div class="rotate-title">Xoay ngang điện thoại</div>
-    <div class="rotate-sub">Trò chơi cần màn hình ngang để chơi được tốt nhất</div>
-  </div>
+</div>
 
+<div class="rotate-hint" id="rotateHint">
+  <div class="rotate-icon">📱</div>
+  <div class="rotate-title">Xoay ngang điện thoại</div>
+  <div class="rotate-sub">Trò chơi cần màn hình ngang để chơi được tốt nhất</div>
+</div>
+
+
+<div id="bd-root">
+  <div id="bd-hud">
+    <div class="hud-section">
+      <div class="level-tag">
+        <span class="lv-prefix">Lv</span>
+        <span class="lv-num" id="bd-level-num">1</span>
+      </div>
+    </div>
+    <div class="hud-section">
+      <div class="turns-badge" id="bd-turns-badge">
+        <div class="fuel-icon-wrap">⛽</div>
+        <div class="fuel-info">
+          <span class="fuel-num" id="bd-turns">3</span>
+          <span class="fuel-label">lượt</span>
+        </div>
+      </div>
+    </div>
+    <div class="hud-section" id="bd-pills-container"></div>
+    <div class="hud-section">
+      <button id="bd-reset-btn" title="Chơi lại">↻</button>
+    </div>
+  </div>
+  <div id="bd-board">
+    <svg id="bd-board-svg"></svg>
+    <div id="bd-hint"></div>
+  </div>
+  <div id="bd-message-overlay">
+    <div class="message-card" id="bd-message-card">
+      <h2 id="bd-message-title"></h2>
+      <p id="bd-message-text"></p>
+      <button id="bd-message-btn">Chơi lại</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -844,7 +1117,8 @@ window.addEventListener('load', () => {
   buildDropzones();
   buildItems();
   buildMasks();
-  applyLevel(0);
+  loadState();
+  applyLevel(levelIdx);
   updateScale();
   checkOrientation();
 
@@ -857,7 +1131,31 @@ window.addEventListener('load', () => {
   window.addEventListener('orientationchange', () => setTimeout(onResize, 250));
 
   recomputeStageOrigin();
+
+  // Restore Phase 2 if user reloaded while in Phase 2
+  try {
+    if (localStorage.getItem('taixe-current-phase') === '2') {
+      switchToPhase2();
+    }
+  } catch (e) {}
 });
+
+//==================== PERSISTENT STATE (shared with Phase 2) ====================
+
+function loadState() {
+  try {
+    const lvl = parseInt(localStorage.getItem('taixe-current-level'));
+    if (lvl >= 1 && lvl <= LEVELS.length) levelIdx = lvl - 1;
+    const money = parseInt(localStorage.getItem('taixe-total-money'));
+    if (!isNaN(money) && money >= 0) totalMoney = money;
+  } catch (e) {}
+}
+function saveState() {
+  try {
+    localStorage.setItem('taixe-current-level', String(levelIdx + 1));
+    localStorage.setItem('taixe-total-money', String(totalMoney));
+  } catch (e) {}
+}
 
 function updateScale() {
   const vw = window.innerWidth;
@@ -1393,13 +1691,11 @@ function confirmShip() {
 }
 
 function showShipModal(stars, reward) {
-  const isFinal = levelIdx >= LEVELS.length - 1;
   const cfg = getLevelCfg();
   const maxStars = cfg.trays.length;
   const isPerfect = stars >= maxStars;
   const titles = ['', 'Giao hàng OK!', 'Giao hàng tốt!', 'Hoàn hảo!'];
-  document.getElementById('shipTitle').textContent =
-    isFinal ? '🏆 Hoàn thành 10 cấp!' : (isPerfect ? 'Hoàn hảo!' : titles[stars]);
+  document.getElementById('shipTitle').textContent = isPerfect ? 'Hoàn hảo!' : titles[stars];
 
   // Hiển thị receipts to thay vì stars
   let html = '';
@@ -1411,21 +1707,13 @@ function showShipModal(stars, reward) {
 
   document.getElementById('shipReward').textContent = `+$${reward}`;
   document.getElementById('shipTotal').textContent  = `Tổng: $${totalMoney}`;
-  document.getElementById('contBtn').textContent =
-    isFinal ? 'Chơi lại từ đầu ↻' : 'Cấp tiếp →';
+  document.getElementById('contBtn').textContent = 'Đi giao hàng →';
   document.getElementById('shipModal').classList.add('show');
 }
 
 function nextLevel() {
-  document.getElementById('shipModal').classList.remove('show');
-  if (levelIdx >= LEVELS.length - 1) {
-    // Finished all 10 levels → restart
-    levelIdx = 0;
-    totalMoney = 0;
-  } else {
-    levelIdx++;
-  }
-  applyLevel(levelIdx);
+  // Done with Phase 1 of this level → switch to Phase 2 (delivery map)
+  switchToPhase2();
 }
 
 //==================== RESET ====================
@@ -1433,9 +1721,526 @@ function nextLevel() {
 function resetGame() {
   levelIdx = 0;
   totalMoney = 0;
+  try {
+    localStorage.removeItem('taixe-current-level');
+    localStorage.removeItem('taixe-total-money');
+    localStorage.removeItem('taixe-current-phase');
+  } catch (e) {}
   document.getElementById('shipModal').classList.remove('show');
   applyLevel(0);
 }
+
+
+//==================== PHASE SWITCH CONTROLLER ====================
+
+function switchToPhase2() {
+  // Phase 1 → Phase 2: hide viewport, show bd-root, init Phase 2 at current level
+  saveState();
+  try { localStorage.setItem('taixe-current-phase', '2'); } catch(e) {}
+  document.getElementById('shipModal').classList.remove('show');
+  document.getElementById('viewport').style.display = 'none';
+  bdGame.show(levelIdx + 1);
+}
+
+function switchToPhase1(newLevel, resetMoney) {
+  // Phase 2 → Phase 1: hide bd-root, show viewport, reload at newLevel
+  bdGame.hide();
+  if (resetMoney) {
+    totalMoney = 0;
+    try { localStorage.removeItem('taixe-total-money'); } catch(e) {}
+  }
+  levelIdx = Math.max(0, Math.min(LEVELS.length - 1, newLevel - 1));
+  try {
+    localStorage.setItem('taixe-current-level', String(levelIdx + 1));
+    localStorage.removeItem('taixe-current-phase');
+  } catch(e) {}
+  document.getElementById('viewport').style.display = '';
+  applyLevel(levelIdx);
+}
+
+//==================== PHASE 2 (Bản Đồ Giao Hàng) ====================
+const bdGame = (function() {
+
+// ============ LEVEL DEFINITIONS ============
+// Coordinates: [col, row] on a 3x3 grid (0,0 = top-left, 2,2 = bottom-right)
+// Each level: 3 start fuel, designed so detour through ⛽ is required to win
+const LEVELS = [
+  // Lv1: 2 goals, 0 stations — tutorial: Kho, A, B thẳng hàng, kéo 1 phát qua hết
+  {
+    kho: [0, 1],
+    goals: { A: [1, 1], B: [2, 1] },
+    stations: [],
+    stationBonus: 0,
+  },
+  // Lv2: 2 goals, 1 station +4 — phải kéo qua ⛽ thì mới đến cả 2 goals (A B cùng row 2 nhưng phải qua X trước)
+  {
+    kho: [0, 0],
+    goals: { A: [1, 2], B: [2, 2] },
+    stations: [[0, 2]],
+    stationBonus: 4,
+  },
+  // Lv3: 3 goals, 1 station +5
+  {
+    kho: [0, 1],
+    goals: { A: [2, 0], B: [2, 2], C: [0, 2] },
+    stations: [[1, 1]],
+    stationBonus: 5,
+  },
+  // Lv4: 3 goals, 1 station +4 — tighter
+  {
+    kho: [0, 1],
+    goals: { A: [0, 0], B: [2, 1], C: [2, 2] },
+    stations: [[1, 1]],
+    stationBonus: 4,
+  },
+  // Lv5: 3 goals, 1 station +5 — zig-zag
+  {
+    kho: [0, 2],
+    goals: { A: [0, 0], B: [2, 0], C: [2, 2] },
+    stations: [[1, 1]],
+    stationBonus: 5,
+  },
+  // Lv6: 3 goals, 2 stations +4 — perimeter
+  {
+    kho: [0, 2],
+    goals: { A: [0, 0], B: [2, 0], C: [2, 2] },
+    stations: [[1, 0], [1, 2]],
+    stationBonus: 4,
+  },
+  // Lv7: 3 goals, 2 stations +5 — column-based
+  {
+    kho: [0, 2],
+    goals: { A: [0, 0], B: [2, 0], C: [2, 2] },
+    stations: [[0, 1], [2, 1]],
+    stationBonus: 5,
+  },
+  // Lv8: 3 goals, 2 stations +4 — kho centered
+  {
+    kho: [1, 2],
+    goals: { A: [0, 0], B: [2, 0], C: [2, 2] },
+    stations: [[0, 1], [2, 1]],
+    stationBonus: 4,
+  },
+  // Lv9: 3 goals, 2 stations +5 — top row challenge
+  {
+    kho: [0, 2],
+    goals: { A: [1, 0], B: [2, 0], C: [2, 2] },
+    stations: [[0, 1], [2, 1]],
+    stationBonus: 5,
+  },
+  // Lv10: 3 goals, 2 stations +4 — goal in center
+  {
+    kho: [0, 2],
+    goals: { A: [1, 0], B: [1, 1], C: [2, 2] },
+    stations: [[0, 1], [2, 1]],
+    stationBonus: 4,
+  },
+];
+
+// ============ GRID SETUP ============
+const COLS = 3, ROWS = 3;
+const dots = [];
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    dots.push({ col: c, row: r, id: `${c},${r}`, type: 'regular', label: '' });
+  }
+}
+
+let currentLevel = 1;
+let state = null;
+
+function setSpecial(col, row, type, label) {
+  const dot = dots.find(d => d.col === col && d.row === row);
+  if (dot) { dot.type = type; dot.label = label; }
+}
+
+// ============ DOM REFS ============
+const board = document.getElementById('bd-board');
+const svg = document.getElementById('bd-board-svg');
+const turnsEl = document.getElementById('bd-turns');
+const turnsBadgeEl = document.getElementById('bd-turns-badge');
+const levelNumEl = document.getElementById('bd-level-num');
+const pillsContainer = document.getElementById('bd-pills-container');
+const hintEl = document.getElementById('bd-hint');
+
+// ============ LEVEL LOAD ============
+function loadLevel(num) {
+  if (num < 1 || num > LEVELS.length) return;
+  currentLevel = num;
+  const lv = LEVELS[num - 1];
+
+  // Save progress (shared with Phase 1)
+  try { localStorage.setItem('taixe-current-level', String(num)); } catch (e) {}
+
+  // Reset dot types
+  for (const d of dots) { d.type = 'regular'; d.label = ''; }
+
+  // Apply config
+  setSpecial(lv.kho[0], lv.kho[1], 'kho', 'Kho');
+  for (const [label, pos] of Object.entries(lv.goals)) {
+    setSpecial(pos[0], pos[1], 'goal', label);
+  }
+  for (const pos of lv.stations) {
+    setSpecial(pos[0], pos[1], 'bonus', 'X');
+  }
+
+  // Init state
+  const khoId = `${lv.kho[0]},${lv.kho[1]}`;
+  const visited = {};
+  for (const k of Object.keys(lv.goals)) visited[k] = false;
+  state = {
+    turns: 3,
+    currentDotId: khoId,
+    visited,
+    path: [khoId],
+    bonusUsed: {},
+    isDragging: false,
+    dragPos: null,
+    dragAxis: null,
+    snapDotId: null,
+    gameOver: false,
+    levelData: lv,
+  };
+
+  // UI refresh
+  levelNumEl.textContent = num;
+  renderGoalPills();
+  updateHintText();
+  hintEl.classList.remove('hidden');
+  hideMessage();
+  layout();
+}
+
+function renderGoalPills() {
+  pillsContainer.innerHTML = '';
+  for (const label of Object.keys(state.visited)) {
+    const pill = document.createElement('span');
+    pill.className = 'goal-pill';
+    pill.id = `pill-${label}`;
+    pill.textContent = label;
+    pillsContainer.appendChild(pill);
+  }
+}
+
+function updateHintText() {
+  const lv = state.levelData;
+  const goalLabels = Object.keys(lv.goals).join(', ');
+  if (lv.stations.length === 0) {
+    hintEl.textContent = `Kéo qua ${goalLabels} (ngang/dọc thôi)`;
+  } else {
+    hintEl.textContent = `Kéo qua ⛽ để được +${lv.stationBonus} lượt`;
+  }
+}
+
+// ============ POSITIONING & RENDERING ============
+function computeDotPositions() {
+  const rect = board.getBoundingClientRect();
+  const gridSize = Math.min(rect.width, rect.height) * 0.82;
+  const startX = (rect.width - gridSize) / 2;
+  const startY = (rect.height - gridSize) / 2;
+  const step = gridSize / (COLS - 1);
+  for (const d of dots) {
+    d.x = startX + d.col * step;
+    d.y = startY + d.row * step;
+  }
+}
+
+function renderDots() {
+  board.querySelectorAll('.dot').forEach(el => el.remove());
+  for (const d of dots) {
+    const el = document.createElement('div');
+    el.className = 'dot';
+    if (d.type !== 'regular') {
+      el.classList.add('special', d.type);
+      el.textContent = d.label;
+      if (d.type === 'bonus') {
+        el.dataset.bonus = state.levelData.stationBonus;
+      }
+    }
+    el.style.left = d.x + 'px';
+    el.style.top = d.y + 'px';
+    el.dataset.id = d.id;
+    board.appendChild(el);
+  }
+}
+
+function updateVisuals() {
+  board.querySelectorAll('.dot').forEach(el => {
+    el.classList.remove('current', 'visited-goal', 'used-bonus', 'snap-target');
+    const id = el.dataset.id;
+    const d = dots.find(x => x.id === id);
+    if (!d) return;
+    if (id === state.currentDotId) el.classList.add('current');
+    if (id === state.snapDotId && id !== state.currentDotId) el.classList.add('snap-target');
+    if (d.type === 'goal' && state.visited[d.label]) el.classList.add('visited-goal');
+    if (d.type === 'bonus' && state.bonusUsed[d.id]) el.classList.add('used-bonus');
+  });
+  turnsEl.textContent = state.turns;
+  turnsBadgeEl.classList.toggle('low', state.turns <= 1 && !state.gameOver);
+  for (const k of Object.keys(state.visited)) {
+    const pill = document.getElementById(`pill-${k}`);
+    if (pill) pill.classList.toggle('done', state.visited[k]);
+  }
+  renderPaths();
+}
+
+function renderPaths() {
+  svg.innerHTML = '';
+  for (let i = 0; i < state.path.length - 1; i++) {
+    const a = dots.find(d => d.id === state.path[i]);
+    const b = dots.find(d => d.id === state.path[i+1]);
+    const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    ln.setAttribute('x1', a.x); ln.setAttribute('y1', a.y);
+    ln.setAttribute('x2', b.x); ln.setAttribute('y2', b.y);
+    ln.setAttribute('stroke', '#818cf8');
+    ln.setAttribute('stroke-width', '6');
+    ln.setAttribute('stroke-linecap', 'round');
+    ln.setAttribute('opacity', '0.9');
+    svg.appendChild(ln);
+  }
+  if (state.isDragging && state.dragPos && state.dragAxis) {
+    const cur = dots.find(d => d.id === state.currentDotId);
+    let ex, ey;
+    if (state.snapDotId) {
+      const s = dots.find(d => d.id === state.snapDotId);
+      ex = s.x; ey = s.y;
+    } else if (state.dragAxis === 'h') {
+      ex = state.dragPos.x; ey = cur.y;
+    } else {
+      ex = cur.x; ey = state.dragPos.y;
+    }
+    const ln = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    ln.setAttribute('x1', cur.x); ln.setAttribute('y1', cur.y);
+    ln.setAttribute('x2', ex); ln.setAttribute('y2', ey);
+    ln.setAttribute('stroke', state.snapDotId ? '#a5b4fc' : 'rgba(165,180,252,0.5)');
+    ln.setAttribute('stroke-width', '5');
+    if (!state.snapDotId) ln.setAttribute('stroke-dasharray', '8 6');
+    ln.setAttribute('stroke-linecap', 'round');
+    svg.appendChild(ln);
+  }
+}
+
+// ============ INPUT ============
+function getEventPos(e) {
+  const rect = board.getBoundingClientRect();
+  let cx, cy;
+  if (e.touches && e.touches[0]) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+  else if (e.changedTouches && e.changedTouches[0]) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+  else { cx = e.clientX; cy = e.clientY; }
+  return { x: cx - rect.left, y: cy - rect.top };
+}
+
+function findDotNear(pos, radius = 50) {
+  let best = null, bestDist = radius;
+  for (const d of dots) {
+    const dist = Math.hypot(d.x - pos.x, d.y - pos.y);
+    if (dist < bestDist) { bestDist = dist; best = d; }
+  }
+  return best;
+}
+
+function getDotsAlongLine(fromDot, toDot) {
+  const result = [];
+  if (fromDot.row === toDot.row && fromDot.col !== toDot.col) {
+    const r = fromDot.row;
+    const step = toDot.col > fromDot.col ? 1 : -1;
+    for (let c = fromDot.col + step; ; c += step) {
+      const d = dots.find(x => x.row === r && x.col === c);
+      if (d) result.push(d);
+      if (c === toDot.col) break;
+    }
+  } else if (fromDot.col === toDot.col && fromDot.row !== toDot.row) {
+    const c = fromDot.col;
+    const step = toDot.row > fromDot.row ? 1 : -1;
+    for (let r = fromDot.row + step; ; r += step) {
+      const d = dots.find(x => x.row === r && x.col === c);
+      if (d) result.push(d);
+      if (r === toDot.row) break;
+    }
+  }
+  return result;
+}
+
+function hideHint() {
+  if (!hintEl.classList.contains('hidden')) hintEl.classList.add('hidden');
+}
+
+function onDragStart(e) {
+  if (!state || state.gameOver) return;
+  e.preventDefault();
+  const pos = getEventPos(e);
+  const d = findDotNear(pos);
+  if (d && d.id === state.currentDotId) {
+    state.isDragging = true;
+    state.dragPos = pos;
+    state.dragAxis = null;
+    state.snapDotId = null;
+    hideHint();
+    updateVisuals();
+  }
+}
+
+function onDragMove(e) {
+  if (!state || !state.isDragging) return;
+  e.preventDefault();
+  state.dragPos = getEventPos(e);
+  const cur = dots.find(d => d.id === state.currentDotId);
+  const dx = state.dragPos.x - cur.x;
+  const dy = state.dragPos.y - cur.y;
+  if (Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+    state.dragAxis = null;
+    state.snapDotId = null;
+    updateVisuals();
+    return;
+  }
+  const isH = Math.abs(dx) >= Math.abs(dy);
+  state.dragAxis = isH ? 'h' : 'v';
+  let bestDot = null, bestDist = 90;
+  for (const d of dots) {
+    if (d.id === state.currentDotId) continue;
+    if (isH) {
+      if (d.row !== cur.row) continue;
+      if ((d.col - cur.col) * dx <= 0) continue;
+    } else {
+      if (d.col !== cur.col) continue;
+      if ((d.row - cur.row) * dy <= 0) continue;
+    }
+    const dist = Math.hypot(d.x - state.dragPos.x, d.y - state.dragPos.y);
+    if (dist < bestDist) { bestDist = dist; bestDot = d; }
+  }
+  state.snapDotId = bestDot ? bestDot.id : null;
+  updateVisuals();
+}
+
+function onDragEnd(e) {
+  if (!state || !state.isDragging) return;
+  if (e.cancelable) e.preventDefault();
+  const target = state.snapDotId ? dots.find(d => d.id === state.snapDotId) : null;
+  state.isDragging = false;
+  state.dragPos = null;
+  state.snapDotId = null;
+  state.dragAxis = null;
+  if (target && target.id !== state.currentDotId && state.turns > 0) {
+    const from = dots.find(d => d.id === state.currentDotId);
+    const dotsAlong = getDotsAlongLine(from, target);
+    state.path.push(target.id);
+    state.turns--;
+    state.currentDotId = target.id;
+    let bonusTriggered = false;
+    for (const d of dotsAlong) {
+      if (d.type === 'bonus' && !state.bonusUsed[d.id]) {
+        state.bonusUsed[d.id] = true;
+        state.turns += state.levelData.stationBonus;
+        showBonusPopup(d, state.levelData.stationBonus);
+        bonusTriggered = true;
+      }
+      if (d.type === 'goal' && !state.visited[d.label]) {
+        state.visited[d.label] = true;
+      }
+    }
+    if (bonusTriggered) {
+      turnsBadgeEl.classList.remove('flash');
+      void turnsBadgeEl.offsetWidth;
+      turnsBadgeEl.classList.add('flash');
+    }
+    const allDone = Object.values(state.visited).every(v => v);
+    if (allDone) {
+      state.gameOver = true;
+      setTimeout(() => showMessage('win'), 500);
+    } else if (state.turns <= 0) {
+      state.gameOver = true;
+      setTimeout(() => showMessage('lose'), 600);
+    }
+  }
+  updateVisuals();
+}
+
+function showBonusPopup(dot, bonus) {
+  const p = document.createElement('div');
+  p.className = 'bonus-popup';
+  p.textContent = `+${bonus} lượt!`;
+  p.style.left = dot.x + 'px';
+  p.style.top = dot.y + 'px';
+  board.appendChild(p);
+  setTimeout(() => p.remove(), 1400);
+}
+
+// ============ MESSAGES ============
+function showMessage(type) {
+  const overlay = document.getElementById('bd-message-overlay');
+  const card = document.getElementById('bd-message-card');
+  const title = document.getElementById('bd-message-title');
+  const text = document.getElementById('bd-message-text');
+  const btn = document.getElementById('bd-message-btn');
+  card.classList.remove('win', 'lose');
+  if (type === 'win') {
+    card.classList.add('win');
+    if (currentLevel < LEVELS.length) {
+      title.textContent = `🎉 Hoàn thành Lv ${currentLevel}!`;
+      text.textContent = `Còn dư ${state.turns} lượt. Sẵn sàng xếp đồ cho Lv ${currentLevel + 1}!`;
+      btn.textContent = `Lv ${currentLevel + 1} →`;
+      btn.onclick = () => { switchToPhase1(currentLevel + 1); };
+    } else {
+      title.textContent = `🏆 Phá đảo cả 10 cấp!`;
+      text.textContent = `Tuyệt vời! Bạn đã hoàn thành cả 10 level.`;
+      btn.textContent = 'Chơi lại từ đầu ↻';
+      btn.onclick = () => { switchToPhase1(1, true); };
+    }
+  } else {
+    card.classList.add('lose');
+    title.textContent = '😢 Hết lượt rồi!';
+    const lv = state.levelData;
+    text.textContent = lv.stations.length > 0
+      ? `Mẹo: Kéo đường đi qua điểm ⛽ để được +${lv.stationBonus} lượt nhé!`
+      : 'Hãy nối các điểm theo đường ngắn nhất.';
+    btn.textContent = 'Chơi lại Lv ' + currentLevel;
+    btn.onclick = () => loadLevel(currentLevel);
+  }
+  overlay.classList.add('show');
+}
+
+function hideMessage() {
+  document.getElementById('bd-message-overlay').classList.remove('show');
+}
+
+// ============ LAYOUT & INIT ============
+function layout() {
+  if (!state) return;
+  computeDotPositions();
+  renderDots();
+  updateVisuals();
+}
+
+board.addEventListener('mousedown', onDragStart);
+window.addEventListener('mousemove', onDragMove);
+window.addEventListener('mouseup', onDragEnd);
+board.addEventListener('touchstart', onDragStart, { passive: false });
+board.addEventListener('touchmove', onDragMove, { passive: false });
+board.addEventListener('touchend', onDragEnd, { passive: false });
+board.addEventListener('touchcancel', onDragEnd, { passive: false });
+
+document.getElementById('bd-reset-btn').addEventListener('click', () => loadLevel(currentLevel));
+
+window.addEventListener('resize', layout);
+window.addEventListener('orientationchange', () => setTimeout(layout, 150));
+
+// Phase 2 init managed by controller (bdGame.show)
+
+
+  // Public API
+  return {
+    show: function(level) {
+      currentLevel = level;
+      document.getElementById('bd-root').classList.add('show');
+      // Recompute layout next frame so getBoundingClientRect is correct
+      requestAnimationFrame(() => loadLevel(level));
+    },
+    hide: function() {
+      document.getElementById('bd-root').classList.remove('show');
+    }
+  };
+})();
+
 </script>
 
 </body>
