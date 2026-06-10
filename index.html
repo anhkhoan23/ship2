@@ -97,11 +97,57 @@
   }
   .reset-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1f2937; }
 
-  .ship-btn {
+  /* ===== "Đi ship" area = receipts above + button below ===== */
+  .ship-area {
     position: fixed;
     bottom: max(20px, env(safe-area-inset-bottom));
     right: max(16px, env(safe-area-inset-right));
     z-index: 300;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+    pointer-events: none;
+  }
+  .receipts {
+    display: flex;
+    gap: 8px;
+    padding-right: 6px;
+    pointer-events: none;
+  }
+  .receipt {
+    width: 28px;
+    height: 36px;
+    display: block;
+    filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
+    transition: filter 0.3s ease;
+  }
+  .receipt .paper {
+    fill: #e5e7eb;
+    stroke: #9ca3af;
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+    transition: fill 0.3s ease, stroke 0.3s ease;
+  }
+  .receipt .line {
+    stroke: #9ca3af;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    transition: stroke 0.3s ease;
+  }
+  .receipt .stamp {
+    opacity: 0;
+    transform: scale(0);
+    transform-origin: 22px 26px;
+    transition: opacity 0.3s, transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .receipt.complete .paper { fill: #fef3c7; stroke: #b45309; }
+  .receipt.complete .line  { stroke: #b45309; }
+  .receipt.complete .stamp { opacity: 1; transform: scale(1); }
+  .receipt.complete { filter: drop-shadow(0 3px 5px rgba(34,197,94,0.45)); }
+  .receipt.big { width: 52px; height: 66px; }
+
+  .ship-btn {
     padding: clamp(10px, 2.2vh, 14px) clamp(18px, 3.5vh, 26px);
     border: 3px solid #1f2937;
     border-radius: 18px;
@@ -116,24 +162,69 @@
     -webkit-appearance: none;
     background: #fbbf24;
     color: #1f2937;
-    transition: background 0.2s, transform 0.1s, box-shadow 0.1s, opacity 0.25s;
+    pointer-events: auto;
+    transition: background 0.2s, transform 0.1s, box-shadow 0.1s;
   }
   .ship-btn .ship-icon { font-size: 1.35em; line-height: 1; display: inline-block; }
-  .ship-btn:not(.disabled):active { transform: translateY(3px); box-shadow: 0 2px 0 #1f2937; }
-  .ship-btn.disabled {
-    background: #d1d5db;
-    color: #9ca3af;
-    border-color: #9ca3af;
-    box-shadow: 0 3px 0 #9ca3af;
-    cursor: not-allowed;
-    pointer-events: none;
-    opacity: 0.85;
-  }
+  .ship-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #1f2937; }
   .ship-btn.ready { animation: shipReady 1.6s ease-out infinite; }
   @keyframes shipReady {
     0%   { box-shadow: 0 5px 0 #1f2937, 0 0 0 0 rgba(251, 191, 36, 0.75); }
     100% { box-shadow: 0 5px 0 #1f2937, 0 0 0 18px rgba(251, 191, 36, 0); }
   }
+
+  /* ===== Ship confirmation modal ===== */
+  .confirm-modal {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: none;
+    align-items: center; justify-content: center;
+    z-index: 950;
+    padding: 20px;
+  }
+  .confirm-modal.show { display: flex; }
+  .confirm-card {
+    background: white;
+    padding: clamp(20px, 4vh, 32px) clamp(24px, 5vh, 40px);
+    border-radius: 22px;
+    text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+    max-width: 92%;
+    border: 3px solid #1f2937;
+    animation: shipCardIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .confirm-title {
+    font-size: clamp(18px, 3.5vh, 24px);
+    font-weight: 900;
+    color: #1f2937;
+    margin-bottom: 6px;
+  }
+  .confirm-msg {
+    font-size: clamp(13px, 2.2vh, 16px);
+    color: #4b5563;
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+  .confirm-buttons {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .confirm-btn {
+    padding: clamp(10px, 2vh, 13px) clamp(18px, 3.5vh, 26px);
+    border: 2px solid #1f2937;
+    border-radius: 12px;
+    font-size: clamp(13px, 2.4vh, 16px);
+    font-weight: 900;
+    cursor: pointer;
+    font-family: inherit;
+    -webkit-appearance: none;
+    box-shadow: 0 3px 0 #1f2937;
+    min-width: 96px;
+  }
+  .confirm-btn.ok     { background: #16a34a; color: white; }
+  .confirm-btn.cancel { background: white; color: #1f2937; }
+  .confirm-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1f2937; }
 
   /* ===== Bike SVG ===== */
   .bike-svg {
@@ -208,6 +299,57 @@
     background: linear-gradient(180deg, transparent, rgba(255,255,255,0.55));
     z-index: 0;
     pointer-events: none;
+  }
+
+  /* ===== Order/tray boxes ===== */
+  .tray-box {
+    position: absolute;
+    background: rgba(255, 255, 255, 0.55);
+    border: 3px dashed rgba(31, 41, 55, 0.35);
+    border-radius: 20px;
+    z-index: 0;
+    pointer-events: none;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    transition: background 0.4s ease, border-color 0.4s ease, border-style 0.4s ease,
+                box-shadow 0.4s ease, transform 0.4s ease, opacity 0.3s ease;
+  }
+  .tray-box .tray-header {
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    white-space: nowrap;
+  }
+  .tray-box .tray-label {
+    color: #6b7280;
+    text-transform: uppercase;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+  }
+  .tray-box .tray-status {
+    font-weight: 900;
+    font-size: 13px;
+    color: #1f2937;
+    font-variant-numeric: tabular-nums;
+    background: rgba(255, 255, 255, 0.85);
+    padding: 2px 8px;
+    border-radius: 8px;
+    border: 1.5px solid rgba(0,0,0,0.18);
+  }
+  .tray-box.complete {
+    background: rgba(34, 197, 94, 0.18);
+    border: 3px solid #16a34a;
+    box-shadow: 0 6px 14px rgba(34,197,94,0.25);
+  }
+  .tray-box.complete .tray-label { color: #15803d; }
+  .tray-box.complete .tray-status {
+    color: #15803d;
+    background: rgba(220, 252, 231, 0.95);
+    border-color: #15803d;
   }
 
   /* ===== Items ===== */
@@ -306,10 +448,11 @@
   }
   .ship-title { font-size: clamp(20px, 4vh, 28px); font-weight: 900; color: #1f2937; }
   .ship-stars-big {
-    font-size: clamp(40px, 8vh, 60px);
-    letter-spacing: 10px;
-    margin: 14px 0 6px;
-    line-height: 1;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin: 18px 0 10px;
+    min-height: 66px;
   }
   .ship-reward {
     font-size: clamp(22px, 4.5vh, 32px);
@@ -373,18 +516,18 @@
 
   <div class="hud">
     <div class="level-text" id="levelText">Cấp 1</div>
-    <div class="stars" id="stars">
-      <span class="star-off">★</span><span class="star-off">★</span><span class="star-off">★</span>
-    </div>
     <div class="price" id="moneyText">$0</div>
-    <div class="count">Hợp lệ: <span id="countText">0</span>/<span id="totalText">3</span></div>
+    <div class="count">Đơn xong: <span id="countText">0</span>/<span id="totalText">2</span></div>
   </div>
   <button class="reset-btn" onclick="resetGame()">↻ Chơi lại</button>
 
-  <button class="ship-btn disabled" id="shipBtn" onclick="onShip()">
-    <span>Đi ship!</span>
-    <span class="ship-icon">🛵</span>
-  </button>
+  <div class="ship-area">
+    <div class="receipts" id="receipts"></div>
+    <button class="ship-btn" id="shipBtn" onclick="onShip()">
+      <span>Đi ship!</span>
+      <span class="ship-icon">🛵</span>
+    </button>
+  </div>
 
   <div id="stage">
     <svg class="bike-svg" viewBox="0 0 1600 720" xmlns="http://www.w3.org/2000/svg">
@@ -415,10 +558,22 @@
   <div class="ship-modal" id="shipModal">
     <div class="ship-card">
       <div class="ship-title" id="shipTitle">Giao hàng thành công!</div>
-      <div class="ship-stars-big" id="shipStarsBig">★★★</div>
+      <div class="ship-stars-big" id="shipStarsBig"></div>
       <div class="ship-reward" id="shipReward">+$120</div>
       <div class="ship-total" id="shipTotal">Tổng: $120</div>
       <button class="ship-cont-btn" id="contBtn" onclick="nextLevel()">Cấp tiếp →</button>
+    </div>
+  </div>
+
+  <!-- Ship confirmation modal -->
+  <div class="confirm-modal" id="confirmModal">
+    <div class="confirm-card">
+      <div class="confirm-title" id="confirmTitle">Hoàn thành 1/3 đơn</div>
+      <div class="confirm-msg" id="confirmMsg">Bạn có muốn đi ship ngay?</div>
+      <div class="confirm-buttons">
+        <button class="confirm-btn cancel" id="confirmCancel" onclick="closeConfirm()">Hủy</button>
+        <button class="confirm-btn ok" id="confirmOk" onclick="confirmShip()">Đi ship!</button>
+      </div>
     </div>
   </div>
 
@@ -650,18 +805,19 @@ const CONTAINER_BASE = {
   bottom: { cls:'side-bag bottom-bag', baseW:180, baseH:160, cx:870,  cy:510 }
 };
 
-// LEVELS theo CSV: [backPct, frontPct, itemCount, star1, star2, star3]
+// LEVELS: mỗi level chia thành các "đơn" (trays). 1 đơn xong = 1 sao.
+// trays:[2,3,3] = 3 đơn với 2/3/3 món → tối đa 3 sao
 const LEVELS = [
-  { back:30,  front:0,   items:3,  stars:[1, 2, 3] },
-  { back:40,  front:0,   items:4,  stars:[1, 2, 4] },
-  { back:50,  front:25,  items:5,  stars:[1, 3, 5] },
-  { back:50,  front:25,  items:5,  stars:[1, 3, 5] },
-  { back:75,  front:50,  items:6,  stars:[2, 4, 6] },
-  { back:75,  front:50,  items:6,  stars:[2, 4, 6] },
-  { back:75,  front:75,  items:8,  stars:[3, 5, 8] },
-  { back:75,  front:75,  items:8,  stars:[3, 5, 8] },
-  { back:100, front:100, items:10, stars:[3, 7, 10] },
-  { back:100, front:100, items:10, stars:[3, 7, 10] }
+  { back:30,  front:0,   trays:[1, 2] },       //  3 món, 2 đơn → max 2★
+  { back:40,  front:0,   trays:[2, 2] },       //  4 món, 2 đơn → max 2★
+  { back:50,  front:25,  trays:[1, 2, 2] },    //  5 món, 3 đơn → max 3★
+  { back:50,  front:25,  trays:[2, 2, 1] },    //  5 món, 3 đơn → max 3★
+  { back:75,  front:50,  trays:[2, 2, 2] },    //  6 món, 3 đơn → max 3★
+  { back:75,  front:50,  trays:[2, 2, 2] },    //  6 món, 3 đơn → max 3★
+  { back:75,  front:75,  trays:[2, 3, 3] },    //  8 món, 3 đơn → max 3★
+  { back:75,  front:75,  trays:[3, 3, 2] },    //  8 món, 3 đơn → max 3★
+  { back:100, front:100, trays:[3, 3, 4] },    // 10 món, 3 đơn → max 3★
+  { back:100, front:100, trays:[4, 3, 3] }     // 10 món, 3 đơn → max 3★
 ];
 
 // Live state of each container (filled per level)
@@ -758,6 +914,7 @@ function buildItems() {
       placed: false,
       valid: false,
       active: false,
+      trayIdx: -1,
       mask: null
     };
     bindDrag(it);
@@ -799,23 +956,36 @@ function applyLevel(idx) {
   // clamp at last config but keep level number going
   const cfg = LEVELS[Math.min(idx, LEVELS.length - 1)];
 
-  // Resize containers (sqrt → percent treated as area, so visually scaled half-area looks half-area)
+  // Resize containers (area-based percent)
   setContainer('back', Math.sqrt(cfg.back  / 100));
   const frontScale = Math.sqrt(cfg.front / 100);
   setContainer('top',    frontScale);
   setContainer('bottom', frontScale);
 
-  // Active items = first N in SHAPES (sorted easy → hard)
-  items.forEach((it, i) => {
-    const active = i < cfg.items;
-    it.active = active;
-    it.placed = false;
-    it.valid = false;
-    it.el.classList.remove('invalid', 'dragging');
-    it.el.classList.toggle('is-hidden', !active);
+  // Assign items to trays: items[0..trays[0]-1] = đơn 0, kế tiếp = đơn 1, etc.
+  let cursor = 0;
+  cfg.trays.forEach((trayN, trayIdx) => {
+    for (let k = 0; k < trayN; k++) {
+      const it = items[cursor];
+      it.active = true;
+      it.trayIdx = trayIdx;
+      it.placed = false;
+      it.valid = false;
+      it.el.classList.remove('invalid', 'dragging', 'is-hidden');
+      cursor++;
+    }
   });
+  // Deactivate remaining items
+  for (let i = cursor; i < items.length; i++) {
+    items[i].active = false;
+    items[i].trayIdx = -1;
+    items[i].placed = false;
+    items[i].valid = false;
+    items[i].el.classList.add('is-hidden');
+    items[i].el.classList.remove('invalid', 'dragging');
+  }
 
-  layoutTray();
+  layoutTrays();
   updateValidations();
   updateHUD();
 }
@@ -847,21 +1017,77 @@ function setContainer(id, scale) {
 
 //==================== TRAY LAYOUT ====================
 
-function layoutTray() {
-  const active = items.filter(it => it.active);
-  const gap = 12;
-  const totalW = active.reduce((s, it) => s + it.w, 0) + gap * Math.max(0, active.length - 1);
-  let x = (STAGE_W - totalW) / 2;
-  const trayCenterY = 775;
-  active.forEach(it => {
-    it.homeX = x;
-    it.homeY = trayCenterY - it.h / 2;
-    if (!it.placed) {
-      it.x = it.homeX;
-      it.y = it.homeY;
-      applyPos(it);
-    }
-    x += it.w + gap;
+function layoutTrays() {
+  // Clear old tray boxes (level may have different tray count)
+  stageEl.querySelectorAll('.tray-box').forEach(el => el.remove());
+
+  const cfg = LEVELS[Math.min(levelIdx, LEVELS.length - 1)];
+  // Group items by tray
+  const groups = [];
+  let cursor = 0;
+  cfg.trays.forEach(trayN => {
+    groups.push(items.slice(cursor, cursor + trayN));
+    cursor += trayN;
+  });
+
+  const itemGap = 10;
+  const trayPadX = 14;
+  const trayHeaderH = 32;
+  const trayPadBottom = 10;
+  const trayGap = 26;
+  const itemsCenterY = 800;
+
+  // Compute each tray's box dimensions
+  const trayDims = groups.map(group => {
+    const itemsW = group.reduce((s, it) => s + it.w, 0) + itemGap * Math.max(0, group.length - 1);
+    const maxItemH = Math.max(...group.map(it => it.h));
+    return {
+      w: itemsW + trayPadX * 2,
+      h: maxItemH + trayHeaderH + trayPadBottom,
+      maxItemH
+    };
+  });
+
+  const totalW = trayDims.reduce((s, d) => s + d.w, 0) + trayGap * Math.max(0, groups.length - 1);
+  let boxX = (STAGE_W - totalW) / 2;
+
+  groups.forEach((group, t) => {
+    const dim = trayDims[t];
+    const boxY = itemsCenterY - dim.maxItemH / 2 - trayHeaderH;
+
+    // Create tray box DOM
+    const box = document.createElement('div');
+    box.className = 'tray-box';
+    box.dataset.trayIdx = t;
+    box.style.left = boxX + 'px';
+    box.style.top = boxY + 'px';
+    box.style.width = dim.w + 'px';
+    box.style.height = dim.h + 'px';
+    box.innerHTML = `
+      <div class="tray-header">
+        <span class="tray-label">Đơn ${t + 1}</span>
+        <span class="tray-status">0/${group.length}</span>
+      </div>
+    `;
+    // Insert before first .item so tray-box is visually behind items
+    const firstItem = stageEl.querySelector('.item');
+    if (firstItem) stageEl.insertBefore(box, firstItem);
+    else stageEl.appendChild(box);
+
+    // Position items inside the tray (centered horizontally on the items, vertically centered around itemsCenterY)
+    let itemX = boxX + trayPadX;
+    group.forEach(it => {
+      it.homeX = itemX;
+      it.homeY = itemsCenterY - it.h / 2;
+      if (!it.placed) {
+        it.x = it.homeX;
+        it.y = it.homeY;
+        applyPos(it);
+      }
+      itemX += it.w + itemGap;
+    });
+
+    boxX += dim.w + trayGap;
   });
 }
 function applyPos(it) {
@@ -1019,13 +1245,41 @@ function getLevelCfg() {
   return LEVELS[Math.min(levelIdx, LEVELS.length - 1)];
 }
 
+// Sao = số đơn hoàn thành (tất cả món trong đơn đã đặt hợp lệ)
 function computeStars() {
   const cfg = getLevelCfg();
-  const validCount = items.filter(it => it.active && it.placed && it.valid).length;
-  if (validCount >= cfg.stars[2]) return 3;
-  if (validCount >= cfg.stars[1]) return 2;
-  if (validCount >= cfg.stars[0]) return 1;
-  return 0;
+  let completed = 0;
+  let cursor = 0;
+  for (const trayN of cfg.trays) {
+    let allValid = true;
+    for (let k = 0; k < trayN; k++) {
+      const it = items[cursor + k];
+      if (!it.placed || !it.valid) { allValid = false; break; }
+    }
+    if (allValid) completed++;
+    cursor += trayN;
+  }
+  return completed;
+}
+
+function updateTrayStatus() {
+  const cfg = getLevelCfg();
+  let cursor = 0;
+  cfg.trays.forEach((trayN, trayIdx) => {
+    let validCount = 0;
+    for (let k = 0; k < trayN; k++) {
+      const it = items[cursor + k];
+      if (it.placed && it.valid) validCount++;
+    }
+    const complete = validCount === trayN;
+    const box = stageEl.querySelector(`.tray-box[data-tray-idx="${trayIdx}"]`);
+    if (box) {
+      box.classList.toggle('complete', complete);
+      const status = box.querySelector('.tray-status');
+      if (status) status.textContent = complete ? `✓ ${validCount}/${trayN}` : `${validCount}/${trayN}`;
+    }
+    cursor += trayN;
+  });
 }
 
 function pendingReward() {
@@ -1036,38 +1290,101 @@ function pendingReward() {
 
 function updateHUD() {
   const cfg = getLevelCfg();
-  const validCount = items.filter(it => it.active && it.placed && it.valid).length;
-  const stars = computeStars();
+  const completedTrays = computeStars();
+  const totalTrays = cfg.trays.length;
   const pending = pendingReward();
 
-  document.getElementById('countText').textContent = validCount;
-  document.getElementById('totalText').textContent = cfg.items;
+  document.getElementById('countText').textContent = completedTrays;
+  document.getElementById('totalText').textContent = totalTrays;
   document.getElementById('levelText').textContent = `Cấp ${levelIdx + 1}`;
   document.getElementById('moneyText').textContent =
     pending > 0 ? `$${totalMoney} +$${pending}` : `$${totalMoney}`;
 
-  const starsEl = document.getElementById('stars');
-  starsEl.innerHTML = '';
-  for (let i = 0; i < 3; i++) {
-    const s = document.createElement('span');
-    s.className = i < stars ? 'star-on' : 'star-off';
-    s.textContent = '★';
-    starsEl.appendChild(s);
-  }
+  updateTrayStatus();
+  updateReceipts();
 
+  // Ship button luôn bật. Pulse khi có ≥ 1 đơn xong để thu hút.
   const shipBtn = document.getElementById('shipBtn');
-  if (stars >= 1) {
-    shipBtn.classList.remove('disabled');
-    shipBtn.classList.add('ready');
-  } else {
-    shipBtn.classList.add('disabled');
-    shipBtn.classList.remove('ready');
+  shipBtn.classList.remove('disabled');
+  if (completedTrays >= 1) shipBtn.classList.add('ready');
+  else                      shipBtn.classList.remove('ready');
+}
+
+//==================== RECEIPTS (mỗi đơn = 1 hoá đơn) ====================
+
+const RECEIPT_INNER = `
+  <path class="paper" d="M 4,3 L 28,3 L 28,33 L 24,39 L 20,33 L 16,39 L 12,33 L 8,39 L 4,33 Z"/>
+  <line class="line" x1="8" y1="12" x2="24" y2="12"/>
+  <line class="line" x1="8" y1="18" x2="24" y2="18"/>
+  <line class="line" x1="8" y1="24" x2="20" y2="24"/>
+  <g class="stamp">
+    <circle cx="22" cy="26" r="6.5" fill="#16a34a"/>
+    <path d="M 19,26 L 21.5,28.5 L 25.5,24" stroke="white" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+`;
+function receiptSvg(big = false) {
+  return `<svg class="receipt${big ? ' big' : ''}" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg">${RECEIPT_INNER}</svg>`;
+}
+
+// Build N slot receipts theo số đơn của level (chỉ rebuild khi N thay đổi)
+function buildReceipts() {
+  const cfg = getLevelCfg();
+  const maxStars = cfg.trays.length;
+  const receiptsEl = document.getElementById('receipts');
+  if (receiptsEl.children.length !== maxStars) {
+    receiptsEl.innerHTML = '';
+    for (let i = 0; i < maxStars; i++) {
+      receiptsEl.insertAdjacentHTML('beforeend', receiptSvg());
+    }
   }
+}
+
+function updateReceipts() {
+  buildReceipts(); // ensure slot count matches level
+  const completed = computeStars();
+  const receipts = document.querySelectorAll('#receipts .receipt');
+  receipts.forEach((r, i) => {
+    r.classList.toggle('complete', i < completed);
+  });
 }
 
 //==================== SHIP / NEXT LEVEL ====================
 
 function onShip() {
+  // Luôn mở popup xác nhận. Nội dung phụ thuộc số đơn đã xong.
+  const stars = computeStars();
+  const cfg = getLevelCfg();
+  const total = cfg.trays.length;
+  const modal = document.getElementById('confirmModal');
+  const title = document.getElementById('confirmTitle');
+  const msg = document.getElementById('confirmMsg');
+  const cancelBtn = document.getElementById('confirmCancel');
+  const okBtn = document.getElementById('confirmOk');
+
+  if (stars === 0) {
+    title.textContent = 'Chưa thể giao hàng!';
+    msg.textContent = 'Bạn chưa có đơn nào hoàn thành. Hãy xếp đủ ít nhất 1 đơn rồi đi ship.';
+    cancelBtn.style.display = 'none';
+    okBtn.textContent = 'OK';
+    okBtn.onclick = closeConfirm;
+  } else {
+    title.textContent = `Hoàn thành ${stars}/${total} đơn`;
+    msg.textContent = stars === total
+      ? 'Hoàn hảo! Sẵn sàng giao hàng?'
+      : `Còn ${total - stars} đơn chưa xong. Bạn vẫn muốn đi ship?`;
+    cancelBtn.style.display = '';
+    okBtn.textContent = 'Đi ship!';
+    okBtn.onclick = confirmShip;
+  }
+  modal.classList.add('show');
+}
+
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('show');
+}
+
+function confirmShip() {
+  closeConfirm();
   const stars = computeStars();
   if (stars < 1) return;
   const reward = pendingReward();
@@ -1077,12 +1394,21 @@ function onShip() {
 
 function showShipModal(stars, reward) {
   const isFinal = levelIdx >= LEVELS.length - 1;
+  const cfg = getLevelCfg();
+  const maxStars = cfg.trays.length;
+  const isPerfect = stars >= maxStars;
   const titles = ['', 'Giao hàng OK!', 'Giao hàng tốt!', 'Hoàn hảo!'];
   document.getElementById('shipTitle').textContent =
-    isFinal ? '🏆 Hoàn thành 10 cấp!' : titles[stars];
-  document.getElementById('shipStarsBig').innerHTML =
-    Array.from({length:3}, (_,i) =>
-      `<span class="${i < stars ? 'star-on' : 'star-off'}">★</span>`).join('');
+    isFinal ? '🏆 Hoàn thành 10 cấp!' : (isPerfect ? 'Hoàn hảo!' : titles[stars]);
+
+  // Hiển thị receipts to thay vì stars
+  let html = '';
+  for (let i = 0; i < maxStars; i++) {
+    const completeClass = i < stars ? ' complete' : '';
+    html += `<svg class="receipt big${completeClass}" viewBox="0 0 32 42" xmlns="http://www.w3.org/2000/svg">${RECEIPT_INNER}</svg>`;
+  }
+  document.getElementById('shipStarsBig').innerHTML = html;
+
   document.getElementById('shipReward').textContent = `+$${reward}`;
   document.getElementById('shipTotal').textContent  = `Tổng: $${totalMoney}`;
   document.getElementById('contBtn').textContent =
