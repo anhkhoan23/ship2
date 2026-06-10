@@ -382,7 +382,6 @@
 
   <div id="stage">
     <svg class="bike-svg" viewBox="0 0 1600 720" xmlns="http://www.w3.org/2000/svg">
-      <ellipse cx="864" cy="690" rx="688" ry="20" fill="rgba(0,0,0,0.12)"/>
       <rect x="192" y="268" width="54" height="184" rx="22" fill="#1f2937"/>
       <rect x="202" y="282" width="34" height="156" rx="16" fill="#4b5563"/>
       <rect x="240" y="304" width="1024" height="113" rx="56" fill="#4b5563"/>
@@ -847,7 +846,7 @@ function layoutTray() {
   const gap = 12;
   const totalW = active.reduce((s, it) => s + it.w, 0) + gap * Math.max(0, active.length - 1);
   let x = (STAGE_W - totalW) / 2;
-  const trayCenterY = 815;
+  const trayCenterY = 775;
   active.forEach(it => {
     it.homeX = x;
     it.homeY = trayCenterY - it.h / 2;
@@ -878,8 +877,22 @@ function bindDrag(item) {
     dragging = true;
     item.el.classList.add('dragging');
     item.el.classList.remove('invalid');
-    offsetLX = p.x - item.x;
-    offsetLY = p.y - item.y;
+
+    if (ev.pointerType === 'touch') {
+      // Mobile: dịch món ra khỏi vùng ngón tay
+      // Trái 1.5× đường kính, lên 0.2× đường kính
+      const d = Math.max(item.w, item.h);
+      offsetLX = 1.5 * d + item.w / 2;
+      offsetLY = 0.2 * d + item.h / 2;
+      item.x = p.x - offsetLX;
+      item.y = p.y - offsetLY;
+      applyPos(item);
+    } else {
+      // Desktop/mouse: nắm đúng chỗ click
+      offsetLX = p.x - item.x;
+      offsetLY = p.y - item.y;
+    }
+
     document.addEventListener('pointermove', onMove, { passive: false });
     document.addEventListener('pointerup',   onUp);
     document.addEventListener('pointercancel', onUp);
