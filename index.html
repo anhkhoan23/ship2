@@ -213,10 +213,16 @@
   /* ===== Items ===== */
   .item {
     position: absolute;
+    left: 0;
+    top: 0;
     z-index: 10;
     background: transparent;
     pointer-events: none;
-    transition: transform 0.18s ease, filter 0.18s ease, left 0.4s ease, top 0.4s ease;
+    transform: translate(var(--x, 0px), var(--y, 0px));
+    will-change: transform;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transition: transform 0.4s ease, filter 0.18s ease;
   }
   .item.is-hidden { display: none; }
   .item svg {
@@ -237,9 +243,9 @@
   .item svg .deco { pointer-events: none; }
   .item.dragging {
     z-index: 1000;
-    transform: scale(1.06) rotate(-1.5deg);
+    transform: translate(var(--x, 0px), var(--y, 0px)) scale(1.06) rotate(-1.5deg);
     filter: drop-shadow(0 12px 22px rgba(0,0,0,0.32));
-    transition: transform 0.08s, filter 0.08s;
+    transition: filter 0.18s ease;
   }
   .item.dragging svg .shape { cursor: grabbing; }
   .item.invalid svg .shape { stroke: #ef4444; stroke-width: 4.5; }
@@ -859,8 +865,8 @@ function layoutTray() {
   });
 }
 function applyPos(it) {
-  it.el.style.left = it.x + 'px';
-  it.el.style.top  = it.y + 'px';
+  it.el.style.setProperty('--x', it.x + 'px');
+  it.el.style.setProperty('--y', it.y + 'px');
 }
 
 //==================== DRAG ====================
