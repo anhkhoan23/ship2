@@ -678,7 +678,7 @@
   }
   #bd-root .dot.scenery { opacity: 0.88; }
   #bd-root .dot.special {
-    width: 78px; height: 78px;
+    width: 26px; height: 26px;
     display: block;
     background: none;
     border: none;
@@ -804,9 +804,9 @@
     -webkit-backdrop-filter: blur(6px);
     box-shadow: 0 8px 24px rgba(0,0,0,0.35);
   }
-  #bd-root .bd-side-hint.left { left: 10px; }
+  #bd-root .bd-side-hint.left { left: calc(20px + env(safe-area-inset-left, 0px)); }
   #bd-root .bd-side-hint.right {
-    right: 10px;
+    right: calc(20px + env(safe-area-inset-right, 0px));
     border-color: rgba(250, 204, 21, 0.45);
     box-shadow: 0 8px 24px rgba(0,0,0,0.35), 0 0 16px rgba(250, 204, 21, 0.15);
   }
@@ -2474,10 +2474,10 @@ function pickSceneryFor(id) {
 // ============ POSITIONING & RENDERING ============
 function computeDotPositions() {
   const rect = board.getBoundingClientRect();
-  // Buildings ~78px (half = 39 below dot center) and bonus shows "+N lượt" label below.
-  // Pad each side so buildings + labels stay comfortably inside the board.
-  // Also reserve space for the side hint cards (left/right ~170px each).
-  const padX = 190;
+  // Buildings now ~26px (half = 13 below dot center) and bonus shows "+N lượt" label below.
+  // Reserve space for the side hint cards: card width 150px + inset (~20px) + notch margin.
+  // Keep dots clear of the cards even on notched phones in landscape.
+  const padX = 200;
   const padTop = 45;
   const padBottom = 70;
   const availW = Math.max(0, rect.width - padX * 2);
