@@ -236,7 +236,7 @@
     width: 1440px;
     height: 810px;
     left: 80px;   /* (1600-1440)/2 */
-    top: -127px;  /* centered 45px, shifted up by tray height (172px) */
+    top: -75px;   /* shifted up by tray height, then down 30% of tray height (52px) */
     pointer-events: none;
     z-index: 1;
     user-select: none;
@@ -1406,24 +1406,24 @@ const SHAPES = [
 
 // Container BASES — full size + center anchor (mỗi cấp scale từ center)
 const CONTAINER_BASE = {
-  // Calibrated to the resized scooter image (1440x810 @ left:80,top:-127).
+  // Calibrated to the resized scooter image (1440x810 @ left:80,top:-75).
   // back = inside the green cargo box front panel; top/bottom = on the footboard.
-  back:   { cls:'back-box',            baseW:362, baseH:486, cx:372,  cy:216 },
-  top:    { cls:'side-bag top-bag',    baseW:226, baseH:140, cx:901,  cy:432 },
-  bottom: { cls:'side-bag bottom-bag', baseW:226, baseH:140, cx:1140, cy:473 }
+  back:   { cls:'back-box',            baseW:362, baseH:486, cx:372,  cy:268 },
+  top:    { cls:'side-bag top-bag',    baseW:226, baseH:140, cx:901,  cy:484 },
+  bottom: { cls:'side-bag bottom-bag', baseW:226, baseH:140, cx:1140, cy:525 }
 };
 
 // LEVELS: mỗi level chia thành các "đơn" (trays). 1 đơn xong = 1 sao.
 // trays:[2,3,3] = 3 đơn với 2/3/3 món → tối đa 3 sao
 const LEVELS = [
-  { back:30,  front:0,   trays:[1, 2] },       //  3 món, 2 đơn → max 2★
-  { back:40,  front:0,   trays:[2, 2] },       //  4 món, 2 đơn → max 2★
-  { back:50,  front:25,  trays:[1, 2, 2] },    //  5 món, 3 đơn → max 3★
-  { back:50,  front:25,  trays:[2, 2, 1] },    //  5 món, 3 đơn → max 3★
-  { back:75,  front:50,  trays:[2, 2, 2] },    //  6 món, 3 đơn → max 3★
-  { back:75,  front:50,  trays:[2, 2, 2] },    //  6 món, 3 đơn → max 3★
-  { back:75,  front:75,  trays:[2, 3, 3] },    //  8 món, 3 đơn → max 3★
-  { back:75,  front:75,  trays:[3, 3, 2] },    //  8 món, 3 đơn → max 3★
+  { back:40,  front:0,   trays:[1, 2] },       //  3 món, 2 đơn → max 2★
+  { back:50,  front:0,   trays:[2, 2] },       //  4 món, 2 đơn → max 2★
+  { back:60,  front:25,  trays:[1, 2, 2] },    //  5 món, 3 đơn → max 3★
+  { back:70,  front:25,  trays:[2, 2, 1] },    //  5 món, 3 đơn → max 3★
+  { back:80,  front:50,  trays:[2, 2, 2] },    //  6 món, 3 đơn → max 3★
+  { back:90,  front:50,  trays:[2, 2, 2] },    //  6 món, 3 đơn → max 3★
+  { back:100, front:75,  trays:[2, 3, 3] },    //  8 món, 3 đơn → max 3★
+  { back:100, front:75,  trays:[3, 3, 2] },    //  8 món, 3 đơn → max 3★
   { back:100, front:100, trays:[3, 3, 4] },    // 10 món, 3 đơn → max 3★
   { back:100, front:100, trays:[4, 3, 3] }     // 10 món, 3 đơn → max 3★
 ];
@@ -1676,7 +1676,7 @@ function layoutTrays() {
   const trayHeaderH = 32;
   const trayPadBottom = 10;
   const trayGap = 26;
-  const itemsCenterY = 800;
+  const itemsCenterY = 852;
 
   // Compute each tray's box dimensions
   const trayDims = groups.map(group => {
