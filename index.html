@@ -236,7 +236,7 @@
     width: 1440px;
     height: 810px;
     left: 80px;   /* (1600-1440)/2 */
-    top: -75px;   /* shifted up by tray height, then down 30% of tray height (52px) */
+    top: -55px;   /* shifted up by tray height, down 30% tray, then down ~1/2 reset-btn (20px) */
     pointer-events: none;
     z-index: 1;
     user-select: none;
@@ -1406,26 +1406,26 @@ const SHAPES = [
 
 // Container BASES — full size + center anchor (mỗi cấp scale từ center)
 const CONTAINER_BASE = {
-  // Calibrated to the resized scooter image (1440x810 @ left:80,top:-75).
+  // Calibrated to the resized scooter image (1440x810 @ left:80,top:-55).
   // back = inside the green cargo box front panel; top/bottom = on the footboard.
-  back:   { cls:'back-box',            baseW:362, baseH:486, cx:372,  cy:268 },
-  top:    { cls:'side-bag top-bag',    baseW:226, baseH:140, cx:901,  cy:484 },
-  bottom: { cls:'side-bag bottom-bag', baseW:226, baseH:140, cx:1140, cy:525 }
+  back:   { cls:'back-box',            baseW:362, baseH:486, cx:372,  cy:288 },
+  top:    { cls:'side-bag top-bag',    baseW:226, baseH:140, cx:901,  cy:504 },
+  bottom: { cls:'side-bag bottom-bag', baseW:226, baseH:140, cx:1140, cy:545 }
 };
 
 // LEVELS: mỗi level chia thành các "đơn" (trays). 1 đơn xong = 1 sao.
 // trays:[2,3,3] = 3 đơn với 2/3/3 món → tối đa 3 sao
 const LEVELS = [
-  { back:40,  front:0,   trays:[1, 2] },       //  3 món, 2 đơn → max 2★
-  { back:50,  front:0,   trays:[2, 2] },       //  4 món, 2 đơn → max 2★
-  { back:60,  front:25,  trays:[1, 2, 2] },    //  5 món, 3 đơn → max 3★
-  { back:70,  front:25,  trays:[2, 2, 1] },    //  5 món, 3 đơn → max 3★
-  { back:80,  front:50,  trays:[2, 2, 2] },    //  6 món, 3 đơn → max 3★
-  { back:90,  front:50,  trays:[2, 2, 2] },    //  6 món, 3 đơn → max 3★
-  { back:100, front:75,  trays:[2, 3, 3] },    //  8 món, 3 đơn → max 3★
-  { back:100, front:75,  trays:[3, 3, 2] },    //  8 món, 3 đơn → max 3★
-  { back:100, front:100, trays:[3, 3, 4] },    // 10 món, 3 đơn → max 3★
-  { back:100, front:100, trays:[4, 3, 3] }     // 10 món, 3 đơn → max 3★
+  { back:40,  top:0,   bottom:0,   trays:[1, 2] },       //  3 món, 2 đơn → max 2★
+  { back:50,  top:0,   bottom:0,   trays:[2, 2] },       //  4 món, 2 đơn → max 2★
+  { back:60,  top:50,  bottom:0,   trays:[1, 2, 2] },    //  5 món, 3 đơn → max 3★
+  { back:70,  top:50,  bottom:0,   trays:[2, 2, 1] },    //  5 món, 3 đơn → max 3★
+  { back:80,  top:50,  bottom:50,  trays:[2, 2, 2] },    //  6 món, 3 đơn → max 3★
+  { back:90,  top:50,  bottom:50,  trays:[2, 2, 2] },    //  6 món, 3 đơn → max 3★
+  { back:100, top:75,  bottom:75,  trays:[2, 3, 3] },    //  8 món, 3 đơn → max 3★
+  { back:100, top:75,  bottom:75,  trays:[3, 3, 2] },    //  8 món, 3 đơn → max 3★
+  { back:100, top:100, bottom:100, trays:[3, 3, 4] },    // 10 món, 3 đơn → max 3★
+  { back:100, top:100, bottom:100, trays:[4, 3, 3] }     // 10 món, 3 đơn → max 3★
 ];
 
 // Live state of each container (filled per level)
@@ -1599,9 +1599,8 @@ function applyLevel(idx) {
 
   // Resize containers (area-based percent)
   setContainer('back', Math.sqrt(cfg.back  / 100));
-  const frontScale = Math.sqrt(cfg.front / 100);
-  setContainer('top',    frontScale);
-  setContainer('bottom', frontScale);
+  setContainer('top',    Math.sqrt(cfg.top    / 100));
+  setContainer('bottom', Math.sqrt(cfg.bottom / 100));
 
   // Assign items to trays: items[0..trays[0]-1] = đơn 0, kế tiếp = đơn 1, etc.
   let cursor = 0;
@@ -2973,7 +2972,7 @@ window.addEventListener('orientationchange', () => setTimeout(layout, 150));
 const mrGame = (function() {
 function _mrActive() { return document.getElementById('mr-root').classList.contains('mr-show'); }
 
-const LEVELS = [{"grid": [[1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1]], "start": [1, 1], "par": 5}, {"grid": [[1, 1, 1, 1, 1], [1, 0, 0, 0, 1], [1, 0, 1, 0, 1], [1, 0, 0, 0, 1], [1, 1, 1, 1, 1]], "start": [1, 1], "par": 4}, {"grid": [[1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 1], [1, 0, 1, 1, 0, 1], [1, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1]], "start": [1, 1], "par": 5}, {"grid": [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 1], [1, 0, 0, 1, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1]], "start": [1, 1], "par": 7}, {"grid": [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 1, 0, 1], [1, 0, 1, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1]], "start": [1, 1], "par": 7}, {"grid": [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 1], [1, 0, 1, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1]], "start": [1, 1], "par": 7}, {"grid": [[1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 0, 1, 1, 1, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1]], "start": [1, 1], "par": 5}, {"grid": [[1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 1], [1, 0, 0, 1, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1]], "start": [1, 1], "par": 9}, {"grid": [[1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 1, 0, 0, 1], [1, 0, 0, 0, 1, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1]], "start": [1, 1], "par": 9}, {"grid": [[1, 1, 1, 1, 1, 1, 1, 1, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 1, 0, 0, 1], [1, 0, 0, 0, 0, 1, 0, 0, 1], [1, 1, 1, 1, 1, 1, 1, 1, 1]], "start": [1, 1], "par": 9}];
+const LEVELS = [{"grid":[[1,1,1,1,1,1],[1,0,0,0,0,1],[1,0,1,1,0,1],[1,0,1,1,0,1],[1,0,0,0,0,1],[1,1,1,1,1,1]],"start":[1,4],"par":4},{"grid":[[1,1,1,1,1,1,1],[1,1,1,0,0,0,1],[1,1,1,0,1,0,1],[1,0,0,0,0,0,1],[1,0,1,0,1,1,1],[1,0,0,0,1,1,1],[1,1,1,1,1,1,1]],"start":[1,5],"par":6},{"grid":[[1,1,1,1,1,1,1],[1,0,0,0,0,0,1],[1,0,1,1,1,0,1],[1,0,1,0,0,0,1],[1,0,1,0,1,0,1],[1,0,1,0,0,0,1],[1,1,1,1,1,1,1]],"start":[1,5],"par":6},{"grid":[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,1,0,0,0,1,0,1],[1,0,1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0,1,0,1],[1,0,1,0,0,0,1,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],"start":[1,5],"par":9},{"grid":[[1,1,1,1,1,1,1,1,1],[1,0,0,0,1,0,0,0,1],[1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,1,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1]],"start":[1,5],"par":7},{"grid":[[1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,1],[1,0,1,1,1,1,0,1],[1,0,1,1,1,1,0,1],[1,0,1,1,1,1,0,1],[1,0,1,1,1,1,0,1],[1,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1]],"start":[1,6],"par":4},{"grid":[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,1,1,0,1],[1,0,1,0,0,0,0,0,1,0,1],[1,0,1,0,1,1,1,0,1,0,1],[1,0,0,0,0,0,1,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],"start":[1,5],"par":9},{"grid":[[1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,1,1,0,1],[1,0,1,0,0,0,0,0,1,0,1],[1,0,1,0,1,1,1,0,1,0,1],[1,0,1,0,1,0,0,0,1,0,1],[1,0,1,0,1,1,1,1,1,0,1],[1,0,1,0,0,0,0,0,0,0,1],[1,1,1,1,1,1,1,1,1,1,1]],"start":[1,7],"par":8},{"grid":[[1,1,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1],[1,0,1,1,1,1,1,0,1],[1,0,1,0,0,0,1,0,1],[1,0,1,0,1,0,1,0,1],[1,0,0,0,1,0,0,0,1],[1,1,1,1,1,1,1,1,1]],"start":[1,5],"par":8},{"grid":[[1,1,1,1,1,1,1,1,1,1,1,1,1],[1,0,0,0,1,0,0,0,1,0,0,0,1],[1,0,1,0,1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0,1,0,1,0,1],[1,0,1,0,1,0,1,0,1,0,1,0,1],[1,0,1,0,0,0,1,0,0,0,1,0,1],[1,1,1,1,1,1,1,1,1,1,1,1,1]],"start":[1,5],"par":11}];
 
 let currentLevel = 0;
 let bikeX, bikeY, painted, isMoving, cellSize, currentDir, totalPaintable, paintedCount, moveCount;
@@ -3253,7 +3252,6 @@ function canMove(x, y, dx, dy) {
   const nx = x + dx, ny = y + dy;
   if (nx < 0 || nx >= COLS() || ny < 0 || ny >= ROWS()) return false;
   if (grid[ny][nx] === 1) return false;
-  if (painted[ny][nx]) return false;
   return true;
 }
 
@@ -3283,7 +3281,6 @@ async function move(dir) {
     const nx = tx + dx, ny = ty + dy;
     if (nx < 0 || nx >= COLS() || ny < 0 || ny >= ROWS()) break;
     if (grid[ny][nx] === 1) break;
-    if (painted[ny][nx]) break;  // KEY: painted cells block
     tx = nx; ty = ny; steps++;
   }
 
