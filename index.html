@@ -70,6 +70,11 @@
     color: #1f2937;
     margin-top: 4px;
     letter-spacing: 1px;
+    transition: font-size 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.3s ease;
+  }
+  .price.money-grew {
+    font-size: clamp(24px, 4.8vh, 34px);
+    color: #16a34a;
   }
   .count {
     font-size: clamp(11px, 1.8vh, 14px);
@@ -427,6 +432,41 @@
     letter-spacing: 0.2px;
   }
 
+  /* ===== Money popup (flies out of HUD when pending grows) ===== */
+  .money-popup {
+    position: fixed;
+    font-size: clamp(18px, 3.2vh, 26px);
+    font-weight: 900;
+    color: #16a34a;
+    background: white;
+    border: 2.5px solid #16a34a;
+    border-radius: 50px;
+    padding: 5px 16px;
+    pointer-events: none;
+    z-index: 400;
+    white-space: nowrap;
+    box-shadow: 0 6px 20px rgba(22,163,74,0.35);
+    animation: moneyPopAnim 1.1s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+  @keyframes moneyPopAnim {
+    0%   { transform: translate(-50%, 0) scale(0.4); opacity: 0; }
+    30%  { transform: translate(-50%, -28px) scale(1.18); opacity: 1; }
+    65%  { transform: translate(-50%, -48px) scale(1.0); opacity: 1; }
+    100% { transform: translate(-50%, -80px) scale(0.85); opacity: 0; }
+  }
+
+  /* ===== HUD money bounce when pending grows ===== */
+  @keyframes moneyHudBounce {
+    0%   { transform: scale(1); }
+    25%  { transform: scale(1.35) rotate(-2deg); }
+    55%  { transform: scale(0.92) rotate(1deg); }
+    75%  { transform: scale(1.12); }
+    100% { transform: scale(1); }
+  }
+  .money-hud-bounce {
+    animation: moneyHudBounce 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
   /* ===== Ship-result modal ===== */
   .ship-modal {
     position: fixed; inset: 0;
@@ -463,13 +503,23 @@
     font-size: clamp(22px, 4.5vh, 32px);
     font-weight: 900;
     color: #16a34a;
+    margin-bottom: 2px;
+  }
+  .ship-order-label {
+    font-size: clamp(11px, 1.8vh, 14px);
+    font-weight: 700;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-top: 14px;
     margin-bottom: 4px;
   }
   .ship-total {
-    font-size: clamp(13px, 2.2vh, 16px);
-    color: #6b7280;
+    font-size: clamp(12px, 1.9vh, 15px);
+    color: #9ca3af;
     margin-bottom: 22px;
     font-weight: 600;
+    font-style: italic;
   }
   .ship-cont-btn {
     padding: clamp(10px, 2.2vh, 14px) clamp(22px, 4vh, 32px);
@@ -978,11 +1028,6 @@
     margin-bottom: 10px;
     line-height: 1.1;
   }
-  .mr-problem-sub {
-    font-size: clamp(15px, 2.5vw, 20px);
-    color: #6b7280;
-    font-weight: 600;
-  }
 
   /* ---- Maze layer (dark overlay + centered maze) ---- */
   #mr-maze-layer {
@@ -999,14 +1044,14 @@
     pointer-events: auto;
   }
 
-  /* ---- Level-end fade overlay ---- */
+  /* ---- Level-end fade overlay (kept but unused for normal flow) ---- */
   #mr-endscreen {
     position: absolute; inset: 0;
     background: #000;
     z-index: 90;
     opacity: 0;
     pointer-events: none;
-    transition: opacity 1s ease;
+    transition: opacity 0.6s ease;
     display: flex; align-items: center; justify-content: center;
     flex-direction: column;
     color: white;
@@ -1016,6 +1061,127 @@
   #mr-endscreen.mr-show {
     opacity: 1;
     pointer-events: auto;
+  }
+
+  /* ---- Customer delivery scene: characters on road ---- */
+  #mr-customer-scene {
+    position: absolute;
+    inset: 0;
+    z-index: 82;
+    pointer-events: none;
+  }
+  /* Customer character: starts off the right edge, slides left into position */
+  #mr-customer-img {
+    position: absolute;
+    bottom: 28vh;
+    left: 120%;                        /* off-screen right to start */
+    height: 30%;
+    width: auto;
+    transform: scaleX(-1);             /* flip to face left (toward biker) */
+    transition: left 1.6s cubic-bezier(0.22, 1.0, 0.36, 1);
+    filter: drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+    pointer-events: none;
+    user-select: none;
+    -webkit-user-drag: none;
+  }
+  #mr-customer-scene.mr-show #mr-customer-img {
+    left: 56%;                         /* rests to the right of the biker (biker stops at ~38%) */
+  }
+
+  /* ---- Delivery success popup ---- */
+  #mr-delivery-popup {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 88;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  #mr-delivery-popup.mr-show {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  #mr-delivery-card {
+    background: white;
+    border: 4px solid #1f2937;
+    border-radius: 28px;
+    padding: clamp(28px, 5vh, 44px) clamp(32px, 7vw, 64px);
+    text-align: center;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+    max-width: min(88vw, 520px);
+    transform: scale(0.6) translateY(30px);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  #mr-delivery-popup.mr-show #mr-delivery-card {
+    transform: scale(1) translateY(0);
+  }
+  /* Confetti burst dots */
+  #mr-delivery-card::before {
+    content: '🎉';
+    position: absolute;
+    top: -22px; left: 50%;
+    transform: translateX(-50%);
+    font-size: 36px;
+    line-height: 1;
+  }
+  .mr-dlv-emoji {
+    font-size: clamp(52px, 9vh, 80px);
+    line-height: 1;
+    margin-bottom: 10px;
+    display: block;
+    animation: mrDlvBounce 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+  }
+  @keyframes mrDlvBounce {
+    from { transform: scale(0) rotate(-15deg); }
+    to   { transform: scale(1) rotate(0deg); }
+  }
+  .mr-dlv-title {
+    font-size: clamp(24px, 4.5vh, 36px);
+    font-weight: 900;
+    color: #1f2937;
+    margin-bottom: 6px;
+    line-height: 1.1;
+  }
+  .mr-dlv-sub {
+    font-size: clamp(13px, 2.2vh, 17px);
+    color: #6b7280;
+    font-weight: 600;
+    margin-bottom: 24px;
+    line-height: 1.4;
+  }
+  .mr-dlv-btn {
+    display: inline-block;
+    padding: clamp(12px, 2.4vh, 16px) clamp(28px, 5vw, 48px);
+    background: #16a34a;
+    color: white;
+    border: 3px solid #1f2937;
+    border-radius: 16px;
+    font-size: clamp(15px, 2.6vh, 19px);
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #14532d;
+    font-family: inherit;
+    -webkit-appearance: none;
+    transition: transform 0.1s, box-shadow 0.1s;
+    letter-spacing: 0.3px;
+  }
+  .mr-dlv-btn:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #14532d;
+  }
+  /* Sparkle ring around the popup */
+  @keyframes mrSparkle {
+    0%   { transform: scale(0.8); opacity: 0; }
+    50%  { opacity: 1; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  .mr-dlv-ring {
+    position: absolute; inset: -18px;
+    border-radius: 40px;
+    border: 3px dashed rgba(251,191,36,0.55);
+    animation: mrSparkle 1.8s ease-out 0.4s infinite;
+    pointer-events: none;
   }
 
   #mr-root .mr-wrap {
@@ -1104,17 +1270,7 @@
   }
   #mr-root .mr-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #7c2d12; }
   #mr-root .mr-btn.mr-btnicon { padding: 8px 11px; }
-  #mr-root .mr-hint {
-    position: absolute; bottom: 12px; left: 50%;
-    transform: translateX(-50%);
-    color: #7c2d12;
-    background: rgba(255,251,235,0.85);
-    padding: 4px 12px;
-    border-radius: 10px;
-    border: 1px solid rgba(124,45,18,0.3);
-    font-size: 11px; z-index: 100; pointer-events: none;
-    font-weight: 500;
-  }
+
   #mr-root .mr-overlay {
     position: absolute; inset: 0;
     display: flex; align-items: center; justify-content: center; flex-direction: column;
@@ -1419,10 +1575,14 @@
   <div id="daily-report-card">
     <div class="dr-title">📋 Báo cáo hôm nay</div>
     <div class="dr-row">
-      <span>💰 Thu nhập từ giao hàng</span>
-      <span id="dr-earned">$0</span>
+      <span>📦 Tiền đơn hôm nay</span>
+      <span id="dr-pending">$0</span>
     </div>
-    <div class="dr-total" id="dr-total">Tổng: $0</div>
+    <div class="dr-row">
+      <span>🏦 Tích luỹ trước đó</span>
+      <span id="dr-prev">$0</span>
+    </div>
+    <div class="dr-total" id="dr-total">💵 Tổng cộng: $0</div>
     <button class="dr-btn" id="dr-continue-btn">Tiếp tục →</button>
   </div>
 </div>
@@ -1439,8 +1599,9 @@
   <div class="hud">
     <div class="level-text" id="levelText">Cấp 1</div>
     <div class="price" id="moneyText">$0</div>
-    <div class="count">Đơn xong: <span id="countText">0</span>/<span id="totalText">2</span></div>
   </div>
+  <span id="countText" style="display:none">0</span>
+  <span id="totalText" style="display:none">2</span>
   <button class="reset-btn" onclick="resetGame()">↻ Chơi lại</button>
 
   <div class="ship-area">
@@ -1459,11 +1620,12 @@
 
   <div class="ship-modal" id="shipModal">
     <div class="ship-card">
-      <div class="ship-title" id="shipTitle">Giao hàng thành công!</div>
+      <div class="ship-title" id="shipTitle">Sẵn sàng giao hàng!</div>
       <div class="ship-stars-big" id="shipStarsBig"></div>
-      <div class="ship-reward" id="shipReward">+$120</div>
-      <div class="ship-total" id="shipTotal">Tổng: $120</div>
-      <button class="ship-cont-btn" id="contBtn" onclick="nextLevel()">Cấp tiếp →</button>
+      <div class="ship-order-label">Tổng tiền đơn hàng</div>
+      <div class="ship-reward" id="shipReward">$120</div>
+      <div class="ship-total" id="shipTotal">Thu nhập khi giao xong</div>
+      <button class="ship-cont-btn" id="contBtn" onclick="nextLevel()">Đi giao hàng →</button>
     </div>
   </div>
 
@@ -1552,7 +1714,7 @@
     <div class="mr-problem-card">
       <span class="mr-problem-icon" id="mr-problem-icon">🚧</span>
       <div class="mr-problem-label" id="mr-problem-label">Kẹt xe!</div>
-      <div class="mr-problem-sub">Giải câu đố để vượt qua!</div>
+
     </div>
   </div>
 
@@ -1574,7 +1736,7 @@
         </div>
       </div>
       <div class="mr-mazegrid" id="mr-maze"></div>
-      <div class="mr-hint">Tô <b>hết</b> ô — ô đã tô sẽ <b>chặn</b> đường</div>
+
 
       <div class="mr-overlay mr-win" id="mr-winOverlay">
         <h1>🎉 Hoàn thành!</h1>
@@ -1601,7 +1763,25 @@
     </div>
   </div>
 
-  <!-- Layer 5: end screen (fade to black) -->
+  <!-- Layer 5b: customer slides in from right to meet biker -->
+  <div id="mr-customer-scene">
+    <img id="mr-customer-img" src="customerWaitDelivery.png" alt="customer"
+         draggable="false"
+         onerror="this.style.display='none';this.removeAttribute('onerror');"/>
+  </div>
+
+  <!-- Layer 5c: successful delivery popup -->
+  <div id="mr-delivery-popup">
+    <div id="mr-delivery-card">
+      <div class="mr-dlv-ring"></div>
+      <span class="mr-dlv-emoji">✅</span>
+      <div class="mr-dlv-title">Giao hàng thành công!</div>
+      <div class="mr-dlv-sub">Khách đã nhận được hàng.<br>Tuyệt vời, tài xế kỳ tài! 🏍️</div>
+      <button class="mr-dlv-btn" id="mr-dlv-continue">Tiếp tục →</button>
+    </div>
+  </div>
+
+  <!-- Layer 5: end screen (fade to black, used as transition out) -->
   <div id="mr-endscreen">
     <div>🏁 Hoàn thành!</div>
   </div>
@@ -2011,6 +2191,7 @@ function renderMask(it) {
 //==================== LEVEL APPLICATION ====================
 
 function applyLevel(idx) {
+  _lastPending = 0;
   // clamp at last config but keep level number going
   const cfg = LEVELS[Math.min(idx, LEVELS.length - 1)];
 
@@ -2349,6 +2530,20 @@ function pendingReward() {
     .reduce((sum, it) => sum + it.price, 0);
 }
 
+let _lastPending = 0;
+
+function _spawnMoneyPopup(added) {
+  const moneyEl = document.getElementById('moneyText');
+  const rect = moneyEl.getBoundingClientRect();
+  const popup = document.createElement('div');
+  popup.className = 'money-popup';
+  popup.textContent = `+$${added}`;
+  popup.style.left = (rect.left + rect.width / 2) + 'px';
+  popup.style.top  = (rect.bottom - 4) + 'px';
+  document.body.appendChild(popup);
+  popup.addEventListener('animationend', () => popup.remove());
+}
+
 function updateHUD() {
   const cfg = getLevelCfg();
   const completedTrays = computeStars();
@@ -2358,8 +2553,29 @@ function updateHUD() {
   document.getElementById('countText').textContent = completedTrays;
   document.getElementById('totalText').textContent = totalTrays;
   document.getElementById('levelText').textContent = `Cấp ${levelIdx + 1}`;
-  document.getElementById('moneyText').textContent =
-    pending > 0 ? `$${totalMoney} +$${pending}` : `$${totalMoney}`;
+
+  const moneyEl = document.getElementById('moneyText');
+  const displayTotal = totalMoney + pending;
+  const prevDisplay = parseInt(moneyEl.dataset.prevDisplay || '0');
+  moneyEl.textContent = `$${displayTotal}`;
+
+  // Subtle grow effect when the displayed total increases
+  if (displayTotal > prevDisplay) {
+    moneyEl.classList.remove('money-grew');
+    void moneyEl.offsetWidth;
+    moneyEl.classList.add('money-grew');
+  }
+  moneyEl.dataset.prevDisplay = String(displayTotal);
+  if (pending > _lastPending) {
+    const added = pending - _lastPending;
+    _spawnMoneyPopup(added);
+    // Re-trigger bounce by removing then re-adding the class
+    moneyEl.classList.remove('money-hud-bounce');
+    void moneyEl.offsetWidth; // force reflow
+    moneyEl.classList.add('money-hud-bounce');
+    moneyEl.addEventListener('animationend', () => moneyEl.classList.remove('money-hud-bounce'), { once: true });
+  }
+  _lastPending = pending;
 
   updateTrayStatus();
   updateReceipts();
@@ -2449,7 +2665,8 @@ function confirmShip() {
   const stars = computeStars();
   if (stars < 1) return;
   const reward = pendingReward();
-  totalMoney += reward;
+  // Store the pending reward — it's credited to totalMoney only after delivery (phase 3 complete)
+  try { localStorage.setItem('taixe-pending-reward', String(reward)); } catch(e) {}
   showShipModal(stars, reward);
 }
 
@@ -2458,9 +2675,9 @@ function showShipModal(stars, reward) {
   const maxStars = cfg.trays.length;
   const isPerfect = stars >= maxStars;
   const titles = ['', 'Giao hàng OK!', 'Giao hàng tốt!', 'Hoàn hảo!'];
-  document.getElementById('shipTitle').textContent = isPerfect ? 'Hoàn hảo!' : titles[stars];
+  document.getElementById('shipTitle').textContent = isPerfect ? 'Tất cả đơn sẵn sàng! 🎉' : titles[stars];
 
-  // Hiển thị receipts to thay vì stars
+  // Receipts
   let html = '';
   for (let i = 0; i < maxStars; i++) {
     const completeClass = i < stars ? ' complete' : '';
@@ -2468,8 +2685,9 @@ function showShipModal(stars, reward) {
   }
   document.getElementById('shipStarsBig').innerHTML = html;
 
-  document.getElementById('shipReward').textContent = `+$${reward}`;
-  document.getElementById('shipTotal').textContent  = `Tổng: $${totalMoney}`;
+  // Show the order total as future earning — driver hasn't received it yet
+  document.getElementById('shipReward').textContent = `$${reward}`;
+  document.getElementById('shipTotal').textContent  = 'Thu nhập khi giao xong';
   document.getElementById('contBtn').textContent = 'Đi giao hàng →';
   document.getElementById('shipModal').classList.add('show');
 }
@@ -2484,9 +2702,11 @@ function nextLevel() {
 function resetGame() {
   levelIdx = 0;
   totalMoney = 0;
+  _lastPending = 0;
   try {
     localStorage.removeItem('taixe-current-level');
     localStorage.removeItem('taixe-total-money');
+    localStorage.removeItem('taixe-pending-reward');
     localStorage.removeItem('taixe-current-phase');
     localStorage.removeItem('taixe-phase3-target');
     localStorage.removeItem('taixe-phase3-current');
@@ -2531,6 +2751,7 @@ function switchToPhase1(newLevel, resetMoney) {
   try {
     localStorage.setItem('taixe-current-level', String(levelIdx + 1));
     localStorage.removeItem('taixe-current-phase');
+    localStorage.removeItem('taixe-pending-reward');
     localStorage.removeItem('taixe-phase3-target');
     localStorage.removeItem('taixe-phase3-current');
     localStorage.removeItem('taixe-phase3-next');
@@ -2555,19 +2776,35 @@ function switchToPhase3(stepCount, nextTaixeLevel, isFinal) {
 // ── stored for use after report/sleep screens ──
 var _phase3NextLevel = 1;
 var _phase3IsFinal   = false;
+var _drPendingEarned = 0;
 
 function onPhase3Complete(nextTaixeLevel, isFinal) {
   _phase3NextLevel = nextTaixeLevel;
   _phase3IsFinal   = isFinal;
+  // Driver has completed the delivery run — credit the pending reward now
+  try {
+    const pending = parseInt(localStorage.getItem('taixe-pending-reward'));
+    if (!isNaN(pending) && pending > 0) {
+      _drPendingEarned = pending;
+      totalMoney += pending;
+      localStorage.removeItem('taixe-pending-reward');
+      saveState();
+    } else {
+      _drPendingEarned = 0;
+    }
+  } catch(e) { _drPendingEarned = 0; }
   showDailyReport();
 }
 
 function showDailyReport() {
-  var earned = totalMoney;
   var title  = _phase3IsFinal ? '🏆 Phá đảo cả 10 cấp!' : '📋 Báo cáo hôm nay';
+  // _drPendingEarned is set just before calling showDailyReport (see onPhase3Complete)
+  var todayEarned = _drPendingEarned || 0;
+  var prevTotal   = totalMoney - todayEarned;
   document.querySelector('#daily-report-card .dr-title').textContent = title;
-  document.getElementById('dr-earned').textContent = '$' + earned;
-  document.getElementById('dr-total').textContent  = 'Tổng: $' + earned;
+  document.getElementById('dr-pending').textContent = '$' + todayEarned;
+  document.getElementById('dr-prev').textContent    = '$' + prevTotal;
+  document.getElementById('dr-total').textContent   = '💵 Tổng cộng: $' + totalMoney;
   document.getElementById('daily-report').style.display = 'flex';
 }
 
@@ -4237,11 +4474,45 @@ window.addEventListener('resize', () => {
 
   function _enterLevelEnd() {
     _setState('LEVEL_END');
-    _stopScroll();
-    _endScreen.classList.add('mr-show');
+
+    // 1. Biker resumes riding from wherever it is (unfreeze + uncentre)
+    _bikeSpr.classList.remove('mr-paused');
+    _bikeSpr.classList.remove('mr-stopped');
+    _startScroll(-1); // drive freely for 2 s
+
     setTimeout(() => {
-      if (_onAllDone) _onAllDone();
-    }, 1800);
+      // 2. Stop the world — street freezes, biker slides to centre-left
+      _stopScroll();
+      _bikeSpr.classList.add('mr-stopped');   // transitions left: 18% → 38%
+      _bikeSpr.classList.add('mr-paused');    // stop the bob once meeting customer
+
+      // 3. Customer slides in from the right a beat after biker starts moving
+      const _customerScene = document.getElementById('mr-customer-scene');
+      if (_customerScene) {
+        setTimeout(() => {
+          _customerScene.classList.add('mr-show');
+        }, 400); // slight delay so biker is already sliding when customer appears
+      }
+
+      // 4. Wait for customer to fully land, then pop up the success card
+      const _popup = document.getElementById('mr-delivery-popup');
+      setTimeout(() => {
+        if (_popup) _popup.classList.add('mr-show');
+      }, 2400);
+
+      // 5. Wire the continue button → fade out then call _onAllDone
+      const _btn = document.getElementById('mr-dlv-continue');
+      if (_btn) {
+        _btn.onclick = () => {
+          if (_popup) _popup.classList.remove('mr-show');
+          _endScreen.classList.add('mr-show');
+          setTimeout(() => {
+            if (_onAllDone) _onAllDone();
+          }, 800);
+        };
+      }
+
+    }, 2000); // 2-second riding stretch
   }
 
   // ---- INTRO sequence ----
@@ -4346,6 +4617,10 @@ window.addEventListener('resize', () => {
       _mazeLayer.classList.remove('mr-show');
       _problemOverlay.classList.remove('mr-show');
       _endScreen.classList.remove('mr-show');
+      const _cs = document.getElementById('mr-customer-scene');
+      if (_cs) _cs.classList.remove('mr-show');
+      const _pp = document.getElementById('mr-delivery-popup');
+      if (_pp) _pp.classList.remove('mr-show');
       document.getElementById('mr-winOverlay').classList.remove('mr-show');
       document.getElementById('mr-stuckOverlay').classList.remove('mr-show');
 
@@ -4389,6 +4664,10 @@ window.addEventListener('resize', () => {
       _stopScroll();
       if (_driveTimer) { clearTimeout(_driveTimer); _driveTimer = null; }
       document.getElementById('mr-root').classList.remove('mr-show');
+      const _cs = document.getElementById('mr-customer-scene');
+      if (_cs) _cs.classList.remove('mr-show');
+      const _pp = document.getElementById('mr-delivery-popup');
+      if (_pp) _pp.classList.remove('mr-show');
       _setState('IDLE');
     }
   };
